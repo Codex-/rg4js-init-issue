@@ -1,0 +1,51 @@
+diff --git a/node_modules/raygun4js/dist/raygun.umd.js b/node_modules/raygun4js/dist/raygun.umd.js
+index 80ad832..be2a8fd 100644
+--- a/node_modules/raygun4js/dist/raygun.umd.js
++++ b/node_modules/raygun4js/dist/raygun.umd.js
+@@ -3,6 +3,8 @@
+ * Copyright (c) 2022 MindscapeHQ; Licensed MIT */
+ // https://github.com/umdjs/umd/blob/master/templates/returnExportsGlobal.js
+ 
++console.log('raygun umd loaded');
++
+ (function (root, factory) {
+     if (typeof define === 'function' && define.amd) {
+         // AMD. Register as an anonymous module.
+@@ -6124,6 +6126,7 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
+   };
+ 
+   var onLoadHandler = function() {
++    console.log('raygun4js onLoadHandler');
+     parseSnippetOptions();
+ 
+     if (noConflict) {
+@@ -6141,6 +6144,8 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
+ 
+       options.from = 'onLoad';
+       rg.init(apiKey, options, null);
++    } else {
++      console.log('raygun4js api key not defined');
+     }
+ 
+     if (attach) {
+@@ -6177,11 +6182,18 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
+ 
+   if (!Raygun.Utilities.isReactNative()) {
+     if (document.readyState === 'complete') {
++      console.log('raygun4js document.readyState complete')
+       onLoadHandler();
+     } else if (window.addEventListener) {
+-      window.addEventListener('load', onLoadHandler);
++      window.addEventListener('load', () => {
++        console.log('raygun4js addEventListener load complete')
++        onLoadHandler();
++      });
+     } else {
+-      window.attachEvent('onload', onLoadHandler);
++      window.attachEvent('onload', () => {
++        console.log('raygun4js addEventListener onload complete')
++        onLoadHandler();
++      });
+     }
+   } else {
+     // Special case for React Native: set up the executor immediately,
