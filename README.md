@@ -79,6 +79,21 @@ When trying to start the app we are effectively in a race condition between the 
                                         will not be captured.
 ```
 
+## rg4js patch
+
+This repo contains a patch that adds logging so you can more visually track what is happening in the console with raygun and this app.
+
+```ascii
+raygun umd loaded
+App raygun key has been set
+App manual config slow started
+raygun4js addEventListener load complete
+raygun4js onLoadHandler <--------------------- init would happen here if the key was configured.
+App manual config finished
+App raygun key has been set
+App raygun config run
+```
+
 ## Workaround
 
 We can get around this race condition by calling `rg4js("boot");` which will manually call the `onLoadHandler()` function again.
