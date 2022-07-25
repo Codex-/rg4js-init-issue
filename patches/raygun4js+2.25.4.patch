@@ -1,5 +1,5 @@
 diff --git a/node_modules/raygun4js/dist/raygun.umd.js b/node_modules/raygun4js/dist/raygun.umd.js
-index 80ad832..be2a8fd 100644
+index 80ad832..11a68dd 100644
 --- a/node_modules/raygun4js/dist/raygun.umd.js
 +++ b/node_modules/raygun4js/dist/raygun.umd.js
 @@ -3,6 +3,8 @@
@@ -11,7 +11,54 @@ index 80ad832..be2a8fd 100644
  (function (root, factory) {
      if (typeof define === 'function' && define.amd) {
          // AMD. Register as an anonymous module.
-@@ -6124,6 +6126,7 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
+@@ -5915,7 +5917,8 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
+     attach,
+     enablePulse,
+     noConflict,
+-    captureUnhandledRejections;
++    captureUnhandledRejections,
++    hasCalledOnLoad = false;
+ 
+   var snippetOnErrorSignature = ['function (b,c,d,f,g){', '||(g=new Error(b)),a[e].q=a[e].q||[]'];
+ 
+@@ -5958,8 +5961,7 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
+           noConflict = value;
+           break;
+         case 'apiKey':
+-          apiKey = value;
+-          hasLoaded = true;
++          onApiKeySetHandler(value);
+           break;
+         case 'options':
+           options = value;
+@@ -6115,7 +6117,25 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
+     }
+   };
+ 
+-  var installGlobalExecutor = function() {
++  var onApiKeySetHandler = function (newApiKey) {
++    apiKey = newApiKey;
++
++    // If the API key is set after onLoadHandler has been called
++    // rg4js is in an uninitialised state.
++    //
++    // Users work around this by manually calling `'boot'`.
++    //
++    // If we set an API key after onLoadHandler has been called,
++    // simply call onLoadHandler again to get rg4js initialised.
++    if (hasCalledOnLoad) {
++      console.log('raygun4js hasCalledOnLoad true, calling onLoadHandler again...');
++      onLoadHandler();
++    }
++
++    hasLoaded = true;
++  };
++
++  var installGlobalExecutor = function () {
+     window[window['RaygunObject']] = function() {
+       return executor(arguments);
+     };
+@@ -6124,6 +6144,7 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
    };
  
    var onLoadHandler = function() {
@@ -19,7 +66,7 @@ index 80ad832..be2a8fd 100644
      parseSnippetOptions();
  
      if (noConflict) {
-@@ -6141,6 +6144,8 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
+@@ -6141,6 +6162,8 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
  
        options.from = 'onLoad';
        rg.init(apiKey, options, null);
@@ -28,7 +75,14 @@ index 80ad832..be2a8fd 100644
      }
  
      if (attach) {
-@@ -6177,11 +6182,18 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
+@@ -6173,15 +6196,25 @@ raygunRumFactory(window, window.jQuery, window.__instantiatedRaygun);
+     }
+ 
+     window[window['RaygunObject']].q = errorQueue;
++
++    console.log('raygun4js onLoadHandler hasCalledOnLoad true');
++    hasCalledOnLoad = true;
+   };
  
    if (!Raygun.Utilities.isReactNative()) {
      if (document.readyState === 'complete') {
